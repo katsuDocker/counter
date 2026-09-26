@@ -21,11 +21,18 @@ const renderHistoryPage = async (data: {
   current?: number;
   day_end?: number;
   update?: Array<{ id: string; current: number }>;
+  goal_log?: Array<{ id: string; head_target: number; day_end: number }>;
 }) => {
   const updates = Array.isArray(data.update) ? data.update : [];
   const sorted = [...updates]
     .map((update) => ({ ...update, timestamp: new Date(update.id).getTime() }))
     .filter((update) => Number.isFinite(update.timestamp))
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+  const goalLog = Array.isArray(data.goal_log) ? data.goal_log : [];
+  const sortedGoals = [...goalLog]
+    .map((entry) => ({ ...entry, timestamp: new Date(entry.id).getTime() }))
+    .filter((entry) => Number.isFinite(entry.timestamp))
     .sort((a, b) => a.timestamp - b.timestamp);
 
   const target = Number(data.head_target) || 0;
@@ -62,6 +69,21 @@ const renderHistoryPage = async (data: {
         })
         .join("")
     : `<li class="empty-state">No saved updates yet.</li>`;
+
+  const goalRows = sortedGoals.length
+    ? sortedGoals
+        .map(
+          (entry) => `
+          <li class="history-item">
+            <div>
+              <div class="history-date">${formatDateTime(entry.id)}</div>
+            </div>
+            <div class="history-value">${formatNumber(Number(entry.head_target) || 0)}</div>
+            <span class="history-diff neutral">${entry.day_end ? formatDateTime(entry.day_end * 1000) : "—"}</span>
+          </li>`,
+        )
+        .join("")
+    : `<li class="empty-state">No goal changes logged yet.</li>`;
 
   const deadlineValue = deadline
     ? new Date(deadline * 1000).toISOString().slice(0, 16)
@@ -150,6 +172,11 @@ const renderHistoryPage = async (data: {
             <button type="submit">Save goal</button>
             <div id="goal-message" class="message" aria-live="polite"></div>
           </form>
+
+          <div style="margin-top: 24px;">
+            <h3 style="margin: 0 0 12px;">Goal log</h3>
+            <ul class="history-list">${goalRows}</ul>
+          </div>
         </aside>
       </div>
     </main>

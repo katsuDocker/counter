@@ -82,4 +82,24 @@ Content-Type: application/json
 
 ## Data storage
 
-Progress is stored in `db.json` at the project root. The file contains the target, current total, deadline, and an array of saved updates. Back up this file before making manual changes.
+Progress is stored in `db.json` at the project root. The file contains the target, current total, deadline, a list of saved updates, and a `goal_log` array that records each time the target/deadline is changed.
+
+Example:
+
+```json
+{
+  "head_target": 500000,
+  "current": 198122,
+  "day_end": 1791223200,
+  "update": [{ "id": "2026-09-26T18:55:09.680Z", "current": 198122 }],
+  "goal_log": [
+    {
+      "id": "2026-09-26T18:55:09.680Z",
+      "head_target": 500000,
+      "day_end": 1791223200
+    }
+  ]
+}
+```
+
+Back up this file before making manual changes.
