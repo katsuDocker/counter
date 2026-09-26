@@ -1,0 +1,12 @@
+services:
+  counter:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - type: bind
+        source: ./db.json
+        target: /app/db.json
+        bind:
+          create_host_path: false
+    restart: unless-stopped
