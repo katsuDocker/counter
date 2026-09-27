@@ -37,14 +37,25 @@ export const updateGoal = async (payload: {
     json.goal_log = [];
   }
 
+  if (!Array.isArray(json.update)) {
+    json.update = [];
+  }
+
+  const resetTimestamp = new Date().toISOString();
   json.goal_log.push({
-    id: new Date().toISOString(),
+    id: resetTimestamp,
     head_target: payload.head_target,
     day_end: payload.day_end,
   });
 
+  json.update.push({
+    id: resetTimestamp,
+    current: 0,
+  });
+
   json.head_target = payload.head_target;
   json.day_end = payload.day_end;
+  json.current = 0;
   await Bun.write(file, JSON.stringify(json, null, 2));
 
   return await Bun.file("./db.json").json();

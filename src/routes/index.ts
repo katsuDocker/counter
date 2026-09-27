@@ -45,19 +45,23 @@ const renderHistoryPage = async (data: {
     ? sorted
         .map((update, index, items) => {
           const previous = items[index - 1];
-          const delta = previous
-            ? Number(update.current) - Number(previous.current)
-            : 0;
-          const deltaText = previous
-            ? `${delta >= 0 ? "+" : "−"}${formatNumber(Math.abs(delta))}`
-            : "—";
-          const deltaClass = previous
-            ? delta > 0
-              ? "positive"
-              : delta < 0
-                ? "negative"
-                : "neutral"
-            : "neutral";
+          const isReset = Number(update.current) === 0;
+          const delta =
+            previous && !isReset
+              ? Number(update.current) - Number(previous.current)
+              : 0;
+          const deltaText =
+            previous && !isReset
+              ? `${delta >= 0 ? "+" : "−"}${formatNumber(Math.abs(delta))}`
+              : "—";
+          const deltaClass =
+            previous && !isReset
+              ? delta > 0
+                ? "positive"
+                : delta < 0
+                  ? "negative"
+                  : "neutral"
+              : "neutral";
           return `
           <li class="history-item">
             <div>
@@ -484,8 +488,11 @@ routes.get("/", (c) => {
           .filter((update) => Number.isFinite(update.timestamp))
           .sort((a, b) => a.timestamp - b.timestamp);
 
-        const startUpdate = datedUpdates[0];
-        const startAmount = startUpdate ? Number(startUpdate.current) || 0 : current;
+        const resetIndex = [...datedUpdates].findLastIndex((update) => Number(update.current) === 0);
+        const cycleUpdates = resetIndex >= 0 ? datedUpdates.slice(resetIndex + 1) : datedUpdates;
+        const cycleBaseline = resetIndex >= 0 ? 0 : (datedUpdates[0] ? Number(datedUpdates[0].current) || 0 : current);
+        const startUpdate = cycleUpdates[0] ?? datedUpdates[0] ?? null;
+        const startAmount = cycleBaseline;
         const startDate = startUpdate ? new Date(startUpdate.id).getTime() : Date.now();
         const startToDeadlineMs = deadline > startDate ? deadline - startDate : 0;
         const daysFromStart = Number.isFinite(startToDeadlineMs) && startToDeadlineMs > 0
@@ -508,11 +515,14 @@ routes.get("/", (c) => {
         document.querySelector("#daily-goal").textContent = dailyGoal === null ? "—" : formatNumber(dailyGoal);
         document.querySelector("#deadline").textContent = data.day_end ? formatDate(deadline) : "Not set";
         document.querySelector("#recent-count").textContent = updates.length + (updates.length === 1 ? " entry" : " entries");
-        const todayUpdates = datedUpdates.filter((update) => new Date(update.timestamp).toDateString() === todayKey);
-        const yesterdayUpdates = datedUpdates.filter((update) => new Date(update.timestamp).toDateString() === yesterdayKey);
+        const todayUpdates = cycleUpdates.filter((update) => new Date(update.timestamp).toDateString() === todayKey);
+        const yesterdayUpdates = cycleUpdates.filter((update) => new Date(update.timestamp).toDateString() === yesterdayKey);
         let todayProgress = null;
         let todayProgressNote = "Add daily updates to track your change";
-        if (todayUpdates.length > 0 && yesterdayUpdates.length > 0) {
+        if (resetIndex >= 0 && cycleUpdates.length > 0) {
+          todayProgress = Number(cycleUpdates[cycleUpdates.length - 1].current) - 0;
+          todayProgressNote = "Progress since the reset";
+        } else if (todayUpdates.length > 0 && yesterdayUpdates.length > 0) {
           todayProgress = Number(todayUpdates[todayUpdates.length - 1].current) - Number(yesterdayUpdates[yesterdayUpdates.length - 1].current);
           todayProgressNote = "Compared with yesterday's last update";
         } else if (todayUpdates.length > 1) {
