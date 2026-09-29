@@ -489,17 +489,9 @@ routes.get("/", (c) => {
           .sort((a, b) => a.timestamp - b.timestamp);
 
         const resetIndex = [...datedUpdates].findLastIndex((update) => Number(update.current) === 0);
+        const todayResetIndex = [...datedUpdates].findLastIndex((update) => Number(update.current) === 0 && new Date(update.timestamp).toDateString() === todayKey);
         const cycleUpdates = resetIndex >= 0 ? datedUpdates.slice(resetIndex + 1) : datedUpdates;
-        const cycleBaseline = resetIndex >= 0 ? 0 : (datedUpdates[0] ? Number(datedUpdates[0].current) || 0 : current);
-        const startUpdate = cycleUpdates[0] ?? datedUpdates[0] ?? null;
-        const startAmount = cycleBaseline;
-        const startDate = startUpdate ? new Date(startUpdate.id).getTime() : Date.now();
-        const startToDeadlineMs = deadline > startDate ? deadline - startDate : 0;
-        const daysFromStart = Number.isFinite(startToDeadlineMs) && startToDeadlineMs > 0
-          ? Math.max(1, Math.ceil(startToDeadlineMs / 86_400_000))
-          : 1;
-        const remainingFromStart = Math.max(0, target - startAmount);
-        const dailyGoal = remainingFromStart === 0 ? 0 : daysFromStart > 0 ? Math.ceil(remainingFromStart / daysFromStart) : null;
+        const dailyGoal = remaining === 0 ? 0 : daysLeft > 0 ? Math.ceil(remaining / daysLeft) : null;
         document.querySelector("#current").textContent = formatNumber(current);
         document.querySelector("#target").textContent = formatNumber(target);
         document.querySelector("#target-pill").textContent = "Goal " + formatNumber(target);
@@ -519,9 +511,9 @@ routes.get("/", (c) => {
         const yesterdayUpdates = cycleUpdates.filter((update) => new Date(update.timestamp).toDateString() === yesterdayKey);
         let todayProgress = null;
         let todayProgressNote = "Add daily updates to track your change";
-        if (resetIndex >= 0 && cycleUpdates.length > 0) {
+        if (todayResetIndex >= 0 && cycleUpdates.length > 0) {
           todayProgress = Number(cycleUpdates[cycleUpdates.length - 1].current) - 0;
-          todayProgressNote = "Progress since the reset";
+          todayProgressNote = "Progress since today's reset";
         } else if (todayUpdates.length > 0 && yesterdayUpdates.length > 0) {
           todayProgress = Number(todayUpdates[todayUpdates.length - 1].current) - Number(yesterdayUpdates[yesterdayUpdates.length - 1].current);
           todayProgressNote = "Compared with yesterday's last update";
