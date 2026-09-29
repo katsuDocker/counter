@@ -40,6 +40,11 @@ docker compose down
 - `GET /history` - update history and goal settings
 - `GET /goals` - alias for the history and goal settings page
 
+## Dashboard calculations
+
+- **Daily goal** is the remaining amount to reach the target divided by the whole days left until the deadline, rounded up. It is `0` when the target is reached and unavailable when the deadline has passed.
+- **Today's progress** uses the latest update today compared with the latest update yesterday when both exist. If there is no yesterday update, it uses the first and last updates today when there are at least two. A reset to zero today starts today's progress from zero. With only one update and no prior-day baseline, the dashboard prompts for another update.
+
 ## API
 
 All request bodies must be JSON. Successful write requests return the updated database state from `db.sqlite`.
