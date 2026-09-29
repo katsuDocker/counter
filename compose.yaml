@@ -5,8 +5,8 @@ services:
       - "8080:8080"
     volumes:
       - type: bind
-        source: ./db.json
-        target: /app/db.json
+        source: ./db.sqlite
+        target: /app/db.sqlite
         bind:
-          create_host_path: false
+          create_host_path: true
     restart: unless-stopped

@@ -1,4 +1,5 @@
+import { readFile } from "./read_file";
+
 export const dailyPayload = async () => {
-  const file = Bun.file("./db.json");
-  const json = await file.json();
+  return await readFile();
 };

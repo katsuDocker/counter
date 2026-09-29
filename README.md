@@ -26,7 +26,7 @@ Build and start the app:
 docker compose up --build
 ```
 
-Open [http://localhost:8080](http://localhost:8080). The Compose configuration bind-mounts the host `db.json` to `/app/db.json`, so updates persist when the container is restarted or recreated.
+Open [http://localhost:8080](http://localhost:8080). The Compose configuration bind-mounts the host `db.sqlite` to `/app/db.sqlite`, so updates persist when the container is restarted or recreated.
 
 Stop the app with `Ctrl+C`, or run:
 
@@ -42,7 +42,7 @@ docker compose down
 
 ## API
 
-All request bodies must be JSON. Successful write requests return the updated contents of `db.json`.
+All request bodies must be JSON. Successful write requests return the updated database state from `db.sqlite`.
 
 ### Read progress
 
@@ -82,24 +82,6 @@ Content-Type: application/json
 
 ## Data storage
 
-Progress is stored in `db.json` at the project root. The file contains the target, current total, deadline, a list of saved updates, and a `goal_log` array that records each time the target/deadline is changed.
+Progress is stored in `db.sqlite` at the project root. The database keeps the target, current total, deadline, saved updates, and a `goal_log` table that records each time the target/deadline is changed.
 
-Example:
-
-```json
-{
-  "head_target": 500000,
-  "current": 198122,
-  "day_end": 1791223200,
-  "update": [{ "id": "2026-09-26T18:55:09.680Z", "current": 198122 }],
-  "goal_log": [
-    {
-      "id": "2026-09-26T18:55:09.680Z",
-      "head_target": 500000,
-      "day_end": 1791223200
-    }
-  ]
-}
-```
-
-Back up this file before making manual changes.
+If a legacy `db.json` file is present, the app migrates it into SQLite on first run and then keeps using the SQLite database.
